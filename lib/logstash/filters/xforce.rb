@@ -18,10 +18,10 @@ class LogStash::Filters::XForce < LogStash::Filters::Base
   config :field, :validate => :string, :required => true
 
   # Lookup type
-  config :lookup_type, :validate => :string, :default => "hash"
+  config :lookup_type, :validate => :string, :default => "ip"
 
   # Where you want the data to be placed
-  config :target, :validate => :string, :default => "virustotal"
+  config :target, :validate => :string, :default => "xforce"
 
   public
   def register
@@ -36,12 +36,19 @@ class LogStash::Filters::XForce < LogStash::Filters::Base
   public
   def filter(event)
 
-    if @lookup_type == "hash"
-      url = "https://www.virustotal.com/vtapi/v2/file/report"
-    elsif @lookup_type == "ip"
+    if @lookup_type == "ip"
       url = "/ipr/" + event[@field]
+    elsif @lookup_type == "iprep"
+      url = "/ipr/history/" + event[@field]
+    elsif @lookup_type == "ipmalware"
+      url = "/ipr/malware/" + event[@field]
+    elsif @lookup_type == "url"
+      url = "/url/" + event[@field]
+    elsif @lookup_type == "urlmalware"
+      url = "/url/malware/" + event[@field]
+    elsif @lookup_type == "malware"
+      url = "/malware/" + event[@field]
     end
-    @logger.warn("URL", :url => url)
     response = @conn.get do |req|
       req.url url
     end
